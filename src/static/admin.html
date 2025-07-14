@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Android TV App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-section h2 {
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input::placeholder, .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4ECDC4;
+        }
+
+        .btn-secondary:hover {
+            background: #45B7D1;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .message.success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.5);
+        }
+
+        .message.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.5);
+        }
+
+        .file-upload {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Voltar ao App</a>
+        
+        <div class="header">
+            <h1>🔧 Painel Administrativo</h1>
+            <p>Gerencie conteúdo e usuários do Android TV App</p>
+        </div>
+
+        <div id="messages"></div>
+
+        <!-- Statistics Section -->
+        <div class="admin-section">
+            <h2>📊 Estatísticas do Sistema</h2>
+            <div class="stats" id="statsContainer">
+                <div class="stat-item">
+                    <div class="stat-number" id="statCategories">-</div>
+                    <div class="stat-label">Categorias</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statChannels">-</div>
+                    <div class="stat-label">Canais</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statMovies">-</div>
+                    <div class="stat-label">Filmes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statSeries">-</div>
+                    <div class="stat-label">Séries</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statEpisodes">-</div>
+                    <div class="stat-label">Episódios</div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="loadStats()">🔄 Atualizar Estatísticas</button>
+        </div>
+
+        <!-- M3U Upload Section -->
+        <div class="admin-section">
+            <h2>📺 Upload de Lista M3U/M3U8</h2>
+            
+            <div class="form-group">
+                <label for="m3uUrl">URL da Lista M3U/M3U8:</label>
+                <input type="url" id="m3uUrl" placeholder="https://exemplo.com/lista.m3u8">
+            </div>
+            <button class="btn" onclick="uploadM3UFromUrl()">📥 Carregar da URL</button>
+
+            <hr style="margin: 30px 0; border: 1px solid rgba(255,255,255,0.2);">
+
+            <div class="file-upload" id="fileUpload">
+                <p>📁 Arraste um arquivo M3U aqui ou clique para selecionar</p>
+                <input type="file" id="fileInput" accept=".m3u,.m3u8" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Content Management Section -->
+        <div class="admin-section">
+            <h2>🎬 Gerenciamento de Conteúdo</h2>
+            <button class="btn btn-secondary" onclick="createSampleContent()">✨ Criar Conteúdo de Exemplo</button>
+            <button class="btn btn-danger" onclick="clearAllContent()">🗑️ Limpar Todo Conteúdo</button>
+        </div>
+
+        <!-- User Management Section -->
+        <div class="admin-section">
+            <h2>👥 Gerenciamento de Usuários</h2>
+            <button class="btn btn-secondary" onclick="createDefaultUsers()">👤 Criar Usuários Padrão</button>
+            <p style="margin-top: 15px; opacity: 0.8;">
+                <strong>Usuários padrão:</strong><br>
+                admin / admin123<br>
+                user1-user10 / user123
+            </p>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+    </div>
+
+    <script>
+        // Load statistics on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            setupFileUpload();
+        });
+
+        function showMessage(text, type = 'success') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/admin/content-stats');
+                const stats = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('statCategories').textContent = stats.categories;
+                    document.getElementById('statChannels').textContent = stats.channels;
+                    document.getElementById('statMovies').textContent = stats.movies;
+                    document.getElementById('statSeries').textContent = stats.series;
+                    document.getElementById('statEpisodes').textContent = stats.episodes;
+                } else {
+                    showMessage(stats.error || 'Erro ao carregar estatísticas', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao carregar estatísticas', 'error');
+            }
+        }
+
+        async function uploadM3UFromUrl() {
+            const url = document.getElementById('m3uUrl').value;
+            if (!url) {
+                showMessage('Por favor, insira uma URL válida', 'error');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/admin/upload-m3u', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Lista M3U processada com sucesso! ${data.stats.channels} canais, ${data.stats.movies} filmes, ${data.stats.series} séries adicionados.`);
+                    document.getElementById('m3uUrl').value = '';
+                    loadStats();
+                } else {
+                    showMessage(data.error || 'Erro ao processar lista M3U', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao processar lista M3U', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function setupFileUpload() {
+            const fileUpload = document.getElementById('fileUpload');
+            const fileInput = document.getElementById('fileInput');
+
+            fileUpload.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUpload.classList.add('dragover');
+            });
+
+            fileUpload.addEventListener('dragleave', () => {
+                fileUpload.classList.remove('dragover');
+            });
+
+            fileUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUpload.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    uploadFile(e.target.files[0]);
+                }
+            });
+        }
+
+        async function uploadFile(file) {
+            if (!file.name.match(/\.(m3u|m3u8)$/i)) {
+                showMessage('Por favor, selecione um arquivo M3U ou M3U8', 'error');
+                return;
+            }
+
+            showLoading();
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/admin/upload-m3u-file', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Arquivo M3U processado com sucesso! ${data.stats.channels} canais, ${data.stats.movies} filmes, ${data.stats.series} séries adicionados.`);
+                    loadStats();
+                } else {
+                    showMessage(data.error || 'Erro ao processar arquivo M3U', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao processar arquivo M3U', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function createSampleContent() {
+            showLoading();
+            try {
+                const response = await fetch('/api/admin/create-sample-content', {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Conteúdo de exemplo criado com sucesso!');
+                    loadStats();
+                } else {
+                    showMessage(data.error || 'Erro ao criar conteúdo de exemplo', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao criar conteúdo de exemplo', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function clearAllContent() {
+            if (!confirm('Tem certeza que deseja remover todo o conteúdo? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/admin/clear-content', {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Todo o conteúdo foi removido com sucesso!');
+                    loadStats();
+                } else {
+                    showMessage(data.error || 'Erro ao remover conteúdo', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao remover conteúdo', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function createDefaultUsers() {
+            showLoading();
+            try {
+                const response = await fetch('/api/admin/users/create-defaults', {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Usuários criados: ${data.created_users.join(', ')}`);
+                } else {
+                    showMessage(data.error || 'Erro ao criar usuários', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão ao criar usuários', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+</html>
+
