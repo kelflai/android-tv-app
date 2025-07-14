@@ -17,32 +17,42 @@ from src.routes.content import content_bp
 from src.routes.admin import admin_bp
 from src.routes.user_management import user_management_bp
 
+# Inicializando a aplicação
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
-# Enable CORS for all routes
+# Habilitando CORS
 CORS(app)
 
+# Registrando Blueprints para as rotas
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(content_bp, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
 app.register_blueprint(user_management_bp, url_prefix='/api/admin')
 
-# uncomment if you need to use database
+# Configuração do banco de dados SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Verificar se a pasta 'database' existe
+if not os.path.exists(os.path.join(os.path.dirname(__file__), 'database')):
+    os.makedirs(os.path.join(os.path.dirname(__file__), 'database'))
+
+# Inicializando o banco de dados
 db.init_app(app)
+
 with app.app_context():
     db.create_all()
-    # Create default users if none exist
+
+    # Criando usuários padrão, caso não existam
     from src.utils.user_manager import UserManager
     from src.utils.content_manager import ContentManager
     if UserManager.get_user_count() == 0:
         UserManager.create_default_users()
         print("Usuários padrão criados automaticamente")
-    
-    # Create sample content if none exists
+
+    # Criando conteúdo de exemplo, caso não exista
     stats = ContentManager.get_content_stats()
     if stats['categories'] == 0:
         ContentManager.create_sample_content()
@@ -53,7 +63,7 @@ with app.app_context():
 def serve(path):
     static_folder_path = app.static_folder
     if static_folder_path is None:
-            return "Static folder not configured", 404
+        return "Static folder not configured", 404
 
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
@@ -64,6 +74,7 @@ def serve(path):
         else:
             return "index.html not found", 404
 
-
+# Configuração do servidor para execução em produção
 if __name__ == '__main__':
-    app.run(host=\'0.0.0.0\', port=os.environ.get(\'PORT\', 5000), debug=False)
+    port = os.environ.get('PORT', 5000)  # Permitindo a configuração da porta via variável de ambiente
+    app.run(host='0.0.0.0', port=port, debug=False)  # Desabilitando debug em produção
